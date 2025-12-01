@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Angular Perception Simulator</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 15px;
+      font-size: 15px; /* ↓ smaller font */
+    }
+
+    h1 {
+      font-size: 22px; /* ↓ reduced */
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-size: 14px; /* ↓ smaller */
+      text-align: center;
+      margin: 4px 0;
+    }
+
+    canvas {
+      background: white;
+      border: 2px solid black;
+      border-radius: 8px;
+      margin-top: 15px;
+      max-width: 95%;
+      height: auto;
+      display: block;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 12px;
+    }
+
+    input {
+      width: 70px;        /* ↓ smaller */
+      padding: 6px;       /* ↓ smaller */
+      font-size: 14px;    /* ↓ medium */
+      border-radius: 4px;
+      border: 1px solid #00796b;
+    }
+
+    button {
+      padding: 7px 12px;   /* ↓ smaller buttons */
+      font-size: 14px;     /* ↓ medium */
+      border-radius: 5px;
+      border: none;
+      background-color: #00796b;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #004d40;
+    }
+
+    h3 {
+      font-size: 17px; /* ↓ medium */
+      margin-top: 18px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Angular Perception Simulator</h1>
+  <p>Closer objects appear to move faster due to larger angular change.</p>
+
+  <div class="controls">
+    <div>
+      <label>Distance A (m)</label><br>
+      <input type="number" id="distanceA" value="5">
+    </div>
+
+    <div>
+      <label>Distance B (m)</label><br>
+      <input type="number" id="distanceB" value="100">
+    </div>
+
+    <div>
+      <label>Speed (m/s)</label><br>
+      <input type="number" id="speedInput" value="2">
+    </div>
+
+    <button id="startButton">Start</button>
+    <button id="stopButton">Stop</button>
+    <button id="resumeButton">Resume</button>
+  </div>
+
+  <canvas id="simulationCanvas"></canvas>
+
+  <h3>Angular Speeds (Degrees/Second)</h3>
+  <p id="angularA">A: 0</p>
+  <p id="angularB">B: 0</p>
+
+  <script>
+    const canvas = document.getElementById("simulationCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let distanceA, distanceB, speed;
+    let positionA = 0, positionB = 0;
+    let lastTimestamp = 0;
+    let animationId = null;
+    let scaleX = 1, scaleY = 1;
+
+    function resizeCanvas() {
+      canvas.width = Math.min(window.innerWidth * 0.95, 900);
+      canvas.height = Math.max(window.innerHeight * 0.55, 300);
+      updateScale();
+      drawScene();
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function computeAngle(position, distance) {
+      return Math.atan(position / distance) * (180 / Math.PI);
+    }
+
+    function updateScale() {
+      const maxDistance = Math.max(distanceA || 0, distanceB || 0);
+      scaleX = (canvas.width * 0.7) / (maxDistance + 20);
+      scaleY = (canvas.height * 0.5) / (maxDistance + 20);
+    }
+
+    function startSimulation() {
+      distanceA = parseFloat(document.getElementById("distanceA").value);
+      distanceB = parseFloat(document.getElementById("distanceB").value);
+      speed = parseFloat(document.getElementById("speedInput").value);
+
+      positionA = 0;
+      positionB = 0;
+
+      updateScale();
+
+      if (animationId) cancelAnimationFrame(animationId);
+      lastTimestamp = performance.now();
+      animationId = requestAnimationFrame(updateSimulation);
+    }
+
+    function stopSimulation() {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+    }
+
+    function resumeSimulation() {
+      if (!animationId) {
+        lastTimestamp = performance.now();
+        animationId = requestAnimationFrame(updateSimulation);
+      }
+    }
+
+    function updateSimulation(timestamp) {
+      const dt = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      positionA += speed * dt;
+      positionB += speed * dt;
+
+      document.getElementById("angularA").innerText = "A: " + computeAngle(positionA, distanceA).toFixed(4);
+      document.getElementById("angularB").innerText = "B: " + computeAngle(positionB, distanceB).toFixed(4);
+
+      drawScene();
+      animationId = requestAnimationFrame(updateSimulation);
+    }
+
+    function drawScene() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height * 0.75;
+
+      ctx.fillStyle = "black";
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillText("Observer (E)", centerX - 30, centerY + 25);
+
+      ctx.setLineDash([6, 5]);
+
+      ctx.strokeStyle = "red";
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(centerX + positionA * scaleX, centerY - distanceA * scaleY);
+      ctx.stroke();
+
+      ctx.strokeStyle = "blue";
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(centerX + positionB * scaleX, centerY - distanceB * scaleY);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "red";
+      ctx.beginPath();
+      ctx.arc(centerX + positionA * scaleX, centerY - distanceA * scaleY, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "blue";
+      ctx.beginPath();
+      ctx.arc(centerX + positionB * scaleX, centerY - distanceB * scaleY, 10, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    document.getElementById("startButton").addEventListener("click", startSimulation);
+    document.getElementById("stopButton").addEventListener("click", stopSimulation);
+    document.getElementById("resumeButton").addEventListener("click", resumeSimulation);
+  </script>
+
+</body>
+</html>
