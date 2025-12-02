@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Train Time Dilation Simulation</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f2f2f2;
+      text-align: center;
+      padding: 20px;
+    }
+    .clockBox {
+      display: inline-block;
+      background: white;
+      padding: 20px;
+      margin: 20px;
+      border-radius: 10px;
+      border: 2px solid black;
+      width: 200px;
+    }
+    .label {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .time {
+      font-size: 28px;
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>Train Time Dilation (Einstein’s Special Relativity)</h2>
+
+<label>Train Speed (0 to 0.99 × speed of light):</label><br>
+<input type="range" id="speedSlider" min="0" max="0.99" step="0.01" value="0" style="width:400px;">
+<br>
+Speed = <span id="speedValue">0</span> c
+
+<div>
+  <div class="clockBox">
+    <div class="label">Ground Clock (Normal)</div>
+    <div id="groundTime" class="time">0.00 s</div>
+  </div>
+
+  <div class="clockBox">
+    <div class="label">Train Clock (Time-Dilated)</div>
+    <div id="trainTime" class="time">0.00 s</div>
+  </div>
+</div>
+
+<button id="toggleBtn">⏸ Stop</button>
+
+<script>
+  let ground = 0;
+  let train = 0;
+
+  let running = true;
+  let interval = setInterval(update, 100);
+
+  function update() {
+    if (!running) return;
+
+    let v = parseFloat(document.getElementById("speedSlider").value);
+    document.getElementById("speedValue").textContent = v;
+
+    let gamma = 1 / Math.sqrt(1 - v * v);
+
+    ground += 0.1;
+    train += 0.1 / gamma;
+
+    document.getElementById("groundTime").textContent = ground.toFixed(2) + " s";
+    document.getElementById("trainTime").textContent = train.toFixed(2) + " s";
+  }
+
+  document.getElementById("toggleBtn").onclick = function () {
+    running = !running;
+
+    this.textContent = running ? "⏸ Stop" : "▶ Start";
+  };
+</script>
+
+</body>
+</html>
