@@ -1,0 +1,32 @@
+# Time Dilation Simulator
+
+This is a small interactive simulation showing how **time slows down** for a moving object, based on Einstein’s theory of Special Relativity.  
+
+You can compare a **clock on the ground** with a **clock on a fast-moving train**. As the train speed increases, the train clock runs slower, just like in real physics.
+
+---
+
+## What You Can Do
+- Change the **train speed** using the slider (0 to 0.99 × speed of light).  
+- See how the **train clock falls behind** the ground clock.  
+- Use the **Stop/Start button** to pause and check the clocks at any moment.
+
+---
+
+## How It Works
+The simulation uses a simple formula from Special Relativity:
+
+\[
+\text{Train Time} = \frac{\text{Ground Time}}{\gamma}, \quad \gamma = \frac{1}{\sqrt{1 - v^2}}
+\]
+
+Where `v` is the train speed as a fraction of the speed of light.  
+The higher the speed, the slower the train clock ticks.
+
+---
+
+## Tech
+- HTML + CSS for layout and styling  
+- JavaScript for updating the clocks in real time
+
+
